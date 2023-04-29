@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { BsFillCursorFill } from "react-icons/bs";
 import { AnimatePresence, motion } from "framer-motion";
 import { MoonLoader } from "react-spinners";
+import { FilenameContext } from "./FilenameProvided";
 
 interface Message {
   content: string;
@@ -41,44 +42,43 @@ export function ChatBubble({
   );
 }
 
-const messages: Message[] = [
-  {
-    content: "Hello",
-    recieved: true,
-  },
-  {
-    content: "Hi",
-    recieved: false,
-  },
-  {
-    content: "How are you?",
-    recieved: true,
-  },
-  {
-    content: "Good",
-    recieved: false,
-  },
-];
-
 export function ChatUI() {
-  const [chats, setChats] = useState<Message[]>(messages);
+  const [chats, setChats] = useState<Message[]>([]);
   const [currentChat, setCurrentChat] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
 
+  const filename = useContext(FilenameContext);
+
+  useEffect(() => {}, [chats]);
+
   const submitChat = async () => {
     setThinking(true);
+    const cachedChats = [...chats, { content: currentChat, recieved: false }];
+    setChats(() => cachedChats);
+    console.log(chats);
     const res = await fetch(
-      "http://localhost:8000/summarize?filename=test.docx"
+      "http://localhost:8000/ask?" +
+        new URLSearchParams({ prompt: currentChat, filename: filename! })
     );
 
-    const data = (await res.json()) as { summary: string };
+    const data = (await res.json()) as { content: string };
 
     console.log(data);
 
-    setChats([...chats, { content: data.summary, recieved: true }]);
+    setChats([...cachedChats, { content: data.content, recieved: true }]);
     setThinking(false);
     setCurrentChat("");
   };
+
+  if (!filename) {
+    return (
+      <div
+        className={`flex grow flex-col justify-between items-center h-screen max-w-[1200px]`}
+      >
+        No file selected
+      </div>
+    );
+  }
 
   return (
     <div

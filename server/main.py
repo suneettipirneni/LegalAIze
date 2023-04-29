@@ -21,11 +21,12 @@ def ask():
     if "prompt" not in request.args:
         return {
             "errorMsg": "Expected a 'query' query parameter, but it was not found"
-        }, 500 
+        }, 500
+
+    result = answer_question(request.args['prompt'], request.args['filename']) 
     
     return {
-        "filename": request.args['filename'],
-        "prompt": request.args['prompt']
+        "content": result,
     }
 
 @app.route("/summarize", methods=['GET'])
@@ -67,6 +68,20 @@ def file_upload():
     file.save(f"./server/docs/{file.filename}")
 
     return file.filename, 200
+
+@app.route("/documents", methods=["GET"])
+def get_documents():
+     if not os.path.exists('./server/docs'):
+        return [], 200
+     
+     files = []
+
+     for file in os.listdir("./server/docs"):
+         summary = summarize_document(file)
+         files.append({ "name": file, "summary": summary })
+
+     return files
+    
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
