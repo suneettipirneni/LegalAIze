@@ -2,19 +2,46 @@
 
 import { useState } from "react";
 
-export function Chat() {
-  const [chats, setChats] = useState<string[]>(["1", "2", "3", "4", "5"]);
+export function ChatBubble({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) {
+  return (
+    <div className={`p-2 bg-blue-500 rounded-xl ${className}`}>{text}</div>
+  );
+}
+
+export function ChatUI() {
+  const [chats, setChats] = useState<string[]>([]);
+
+  const [currentChat, setCurrentChat] = useState<string>("");
 
   return (
-    <div className="flex flex-col items-center justify-between p-24">
-      {chats.map((chat, idx) => (
-        <div
-          key={idx}
-          className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex"
+    <div
+      className={`flex grow flex-col justify-between space-y-2 border-2 border-red h-screen`}
+    >
+      <div className="flex grow flex-col overflow-scroll space-y-2 flex-end">
+        {chats.map((chat, idx) => (
+          <ChatBubble key={idx} text={chat} className="self-end" />
+        ))}
+      </div>
+
+      <div className="flex flex-row space-x-4 max-h-[100px]">
+        <input
+          name="test"
+          className="text-black grow rounded-full p-3"
+          onChange={(a) => setCurrentChat(a.target.value)}
+        />
+        <button
+          className="rounded-lg bg-blue-400 p-4"
+          onClick={() => setChats([...chats, currentChat])}
         >
-          {chat}
-        </div>
-      ))}
+          Send
+        </button>
+      </div>
     </div>
   );
 }
