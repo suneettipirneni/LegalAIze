@@ -36,6 +36,24 @@ summarize_document_chain = AnalyzeDocumentChain(combine_docs_chain=summary_chain
 qa_chain = load_qa_chain(llm, chain_type="map_reduce")
 qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
+def get_doc_and_summary(file_name: str):
+    if redis_client.exists(file_name):
+        data = redis_client.hgetall(file_name)
+        data = {k.decode(): v.decode('utf-8', 'ignore') for k, v in data.items()}
+        return data
+    
+    file_path = os.path.join(os.getcwd(), 'server','docs', file_name).replace('\\', '/')
+    doc_loader = UnstructuredWordDocumentLoader(file_path)
+    document = doc_loader.load()
+    summary = summarize_document_chain.run(document[0].page_content)
+    data = {
+        'document': document[0].page_content,
+        'summary': summary
+    }
+    redis_client.hmset(file_name, data)
+    return data
+
+
 def load_document(file_name: str):
     # check if file exists in redis
     if redis_client.exists(file_name):
@@ -47,9 +65,12 @@ def load_document(file_name: str):
     return document[0].page_content
 
 def summarize_document(file_name: str):
-    doc = load_document(file_name)
-    return summarize_document_chain.run(doc)
+    if redis_client.exists(file_name):
+        data = redis_client.hgetall(file_name)
+        return data['summary'].decode('utf-8', 'ignore')
+    data = get_doc_and_summary(file_name)
+    return data['summary']
 
 def answer_question(question: str, file_name: str):
-    doc = load_document(file_name)
-    return qa_document_chain.run(question = question, input_document = doc)
+    doc = get_doc_and_summary(file_name)
+    return qa_document_chain.run(question = question, input_document = doc['document'])

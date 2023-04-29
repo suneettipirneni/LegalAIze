@@ -2,7 +2,7 @@ from flask import Flask, request, abort, Response
 from flask_cors import CORS, cross_origin
 import os
 
-from ml import summarize_document, answer_question
+from ml import summarize_document, answer_question, get_doc_and_summary
 
 app = Flask(__name__)
 CORS(app)
@@ -66,6 +66,7 @@ def file_upload():
         os.mkdir('./server/docs')
 
     file.save(f"./server/docs/{file.filename}")
+    get_doc_and_summary(file.filename)
 
     return file.filename, 200
 
@@ -82,6 +83,5 @@ def get_documents():
 
      return files
     
-
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
