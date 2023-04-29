@@ -21,8 +21,8 @@ export function ChatBubble({
 }) {
   const alignClass = recieved ? "self-start" : "self-end";
   const bgClass = recieved
-    ? "bg-slate-100 text-black"
-    : "bg-blue-500 shadow-sm text-white";
+    ? "bg-slate-100 text-black rounded-t-xl rounded-r-xl"
+    : "bg-blue-500 shadow-sm text-white rounded-t-xl rounded-l-xl";
   return (
     <motion.div
       initial={{ opacity: 0, x: 100, scale: 0.1, rotate: 5 }}
@@ -35,7 +35,7 @@ export function ChatBubble({
         stiffness: 70,
         restDelta: 0.5,
       }}
-      className={`py-2 px-3 ${bgClass} rounded-xl min-w-[40px] text-lg text-left max-w-[60%] ${alignClass}`}
+      className={`py-2 px-3 ${bgClass} min-w-[40px] text-lg text-left max-w-[60%] ${alignClass}`}
     >
       {text}
     </motion.div>
@@ -53,6 +53,7 @@ export function ChatUI() {
 
   const submitChat = async () => {
     setThinking(true);
+    setCurrentChat("");
     const cachedChats = [...chats, { content: currentChat, recieved: false }];
     setChats(() => cachedChats);
     console.log(chats);
@@ -67,7 +68,6 @@ export function ChatUI() {
 
     setChats([...cachedChats, { content: data.content, recieved: true }]);
     setThinking(false);
-    setCurrentChat("");
   };
 
   if (!filename) {
