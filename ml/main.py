@@ -7,11 +7,9 @@ from langchain.chains import AnalyzeDocumentChain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.document_loaders import UnstructuredWordDocumentLoader
 from langchain.chains.question_answering import load_qa_chain
-from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
-from langchain.docstore.document import Document
 import os
-from dotenv import load
-load()
+from dotenv import load_dotenv
+load_dotenv()
 
 use_default_model = False
 model_name = 'text-curie-001'

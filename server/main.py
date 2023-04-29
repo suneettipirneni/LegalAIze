@@ -1,7 +1,12 @@
 from flask import Flask, request, abort
 import os
 
+from ml import summarize_document, load_document
+
 app = Flask(__name__)
+
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
 
 @app.route("/ask", methods=['GET'])
 def ask():
@@ -28,7 +33,15 @@ def summarize():
             "errorMsg": "Expected a 'filename' query parameter, but it was not found"
         }, 500
   
-  return "", 200
+  filename = request.args['filename']
+
+  document = load_document(file_name=filename)
+
+  result = summarize_document(document.page_content)
+
+  print(result)
+  
+  return result, 200
 
 
 @app.route("/fileupload", methods=["POST"])
@@ -40,9 +53,9 @@ def file_upload():
     
     file = request.files['document']
 
-    if not os.path.exists('./docs'):
-        os.mkdir('./docs')
+    if not os.path.exists('./server/docs'):
+        os.mkdir('./server/docs')
 
-    file.save(f"./docs/{file.filename}")
+    file.save(f"./server/docs/{file.filename}")
 
     return file.filename, 200
