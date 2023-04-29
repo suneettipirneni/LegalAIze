@@ -59,3 +59,6 @@ def file_upload():
     file.save(f"./server/docs/{file.filename}")
 
     return file.filename, 200
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
