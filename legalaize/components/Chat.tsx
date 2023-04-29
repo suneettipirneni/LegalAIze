@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { BsFillCursorFill } from "react-icons/bs";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { MoonLoader } from "react-spinners";
 
 interface Message {
@@ -24,7 +24,7 @@ export function ChatBubble({
     : "bg-blue-500 shadow-sm text-white";
   return (
     <motion.div
-      initial={{ opacity: 0, x: 100, scale: 0.7, rotate: 5 }}
+      initial={{ opacity: 0, x: 100, scale: 0.1, rotate: 5 }}
       animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
       transition={{
         duration: 0.5,
@@ -32,7 +32,7 @@ export function ChatBubble({
         type: "spring",
         damping: 5,
         stiffness: 70,
-        restDelta: 0.1,
+        restDelta: 0.5,
       }}
       className={`py-2 px-3 ${bgClass} rounded-xl min-w-[40px] text-lg text-left max-w-[60%] ${alignClass}`}
     >
@@ -65,6 +65,15 @@ export function ChatUI() {
   const [currentChat, setCurrentChat] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
 
+  const submitChat = () => {
+    setChats([...chats, { content: currentChat, recieved: false }]);
+    setCurrentChat("");
+    setThinking(true);
+    setTimeout(() => {
+      setThinking(false);
+    }, 3000);
+  };
+
   return (
     <div
       className={`flex grow flex-col justify-between h-screen max-w-[1200px]`}
@@ -76,37 +85,53 @@ export function ChatUI() {
         ))}
       </div>
 
-      <div className="flex flex-row space-x-4 max-h-[100px] p-2">
-        <input
-          name="test"
-          className="text-black grow rounded-full px-3 py-2 border border-slate-300"
-          onChange={(a) => setCurrentChat(a.target.value)}
-          value={currentChat}
-        />
-        {thinking ? (
-          <MoonLoader
-            color="blue"
-            loading={true}
-            size={28}
-            speedMultiplier={0.7}
-          />
-        ) : (
-          <button
-            className="rounded-full bg-blue-500 p-4"
-            disabled={currentChat.length === 0}
-            onClick={() => {
-              setChats([...chats, { content: currentChat, recieved: false }]);
-              setCurrentChat("");
-              setThinking(true);
-              setTimeout(() => {
-                setThinking(false);
-              }, 3000);
+      <AnimatePresence>
+        <motion.div
+          exit={{ opacity: 0, x: 100 }}
+          className="flex flex-row space-x-4 max-h-[100px] p-2"
+        >
+          <motion.input
+            layout
+            name="test"
+            transition={{ duration: 0.5, type: "spring" }}
+            className="text-black grow rounded-full px-3 py-2 border border-slate-300"
+            onChange={(a) => setCurrentChat(a.target.value)}
+            value={currentChat}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                submitChat();
+              }
             }}
-          >
-            <BsFillCursorFill />
-          </button>
-        )}
-      </div>
+          />
+
+          {thinking ? (
+            <MoonLoader
+              color="blue"
+              loading={true}
+              size={28}
+              speedMultiplier={0.7}
+            />
+          ) : (
+            currentChat.length > 0 && (
+              <motion.button
+                layout
+                initial={{ opacity: 0, x: 0, scale: 0 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{
+                  duration: 0.5,
+                  type: "spring",
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                className="rounded-full bg-blue-500 p-4 text-white"
+                disabled={currentChat.length === 0}
+                onClick={submitChat}
+              >
+                <BsFillCursorFill />
+              </motion.button>
+            )
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

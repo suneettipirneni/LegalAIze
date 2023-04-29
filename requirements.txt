@@ -1,0 +1,8 @@
+langchain[llms]
+redis
+boto3
+pyllamacpp
+tiktoken
+unstructured
+python-dotenv
+flask
