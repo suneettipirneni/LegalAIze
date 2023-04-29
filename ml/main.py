@@ -39,7 +39,7 @@ qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 def load_document(file_name: str):
     # check if file exists in redis
     if redis_client.exists(file_name):
-        return redis_client.get(file_name)
+        return redis_client.get(file_name).decode('utf-8', 'ignore')
     file_path = os.path.join(os.getcwd(), 'server','docs', file_name).replace('\\', '/')
     doc_loader = UnstructuredWordDocumentLoader(file_path)
     document = doc_loader.load()
