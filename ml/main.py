@@ -31,8 +31,10 @@ def load_document(file_name: str):
     document = doc_loader.load()
     return document[0]
 
-def summarize_document(doc_content: str):
-    return summarize_document_chain.run(doc_content)
+def summarize_document(file_name: str):
+    doc = load_document(file_name)
+    return summarize_document_chain.run(doc.page_content)
 
-def answer_question(question: str, context: str):
-    return qa_document_chain.run(question = question, input_document = context)
+def answer_question(question: str, file_name: str):
+    doc = load_document(file_name)
+    return qa_document_chain.run(question = question, input_document = doc.page_content)
