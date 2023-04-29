@@ -1,7 +1,7 @@
 from flask import Flask, request, abort
 import os
 
-from ml import summarize_document, load_document
+from ml import summarize_document, answer_question
 
 app = Flask(__name__)
 
@@ -35,9 +35,7 @@ def summarize():
   
   filename = request.args['filename']
 
-  document = load_document(file_name=filename)
-
-  result = summarize_document(document.page_content)
+  result = summarize_document(filename)
 
   print(result)
   
