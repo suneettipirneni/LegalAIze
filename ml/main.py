@@ -8,10 +8,16 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.document_loaders import UnstructuredWordDocumentLoader
 from langchain.chains.question_answering import load_qa_chain
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
-use_default_model = False
+# check windows or not
+if os.name == 'nt':
+    from dotenv import load
+    load()
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
+
+use_default_model = True
 model_name = 'text-curie-001'
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
