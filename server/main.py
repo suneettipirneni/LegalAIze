@@ -1,16 +1,18 @@
-from flask import Flask, request, abort
+from flask import Flask, request, abort, Response
+from flask_cors import CORS, cross_origin
 import os
 
 from ml import summarize_document, load_document
 
 app = Flask(__name__)
+CORS(app)
 
 import sys, os
+import json
 sys.path.insert(0, os.path.abspath('..'))
 
 @app.route("/ask", methods=['GET'])
 def ask():
-    
     if "filename" not in request.args:
         return {
             "errorMsg": "Expected a 'filename' query parameter, but it was not found"
@@ -40,8 +42,16 @@ def summarize():
   result = summarize_document(document.page_content)
 
   print(result)
-  
-  return result, 200
+
+  response = Response(json.dumps({
+      "summary": result
+  }), mimetype="application/json", headers={
+      "Access-Control-Allow-Credentials" : True,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers" : "Origin, Content-Type, Accept"
+  })
+
+  return response
 
 
 @app.route("/fileupload", methods=["POST"])

@@ -65,13 +65,19 @@ export function ChatUI() {
   const [currentChat, setCurrentChat] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
 
-  const submitChat = () => {
-    setChats([...chats, { content: currentChat, recieved: false }]);
-    setCurrentChat("");
+  const submitChat = async () => {
     setThinking(true);
-    setTimeout(() => {
-      setThinking(false);
-    }, 3000);
+    const res = await fetch(
+      "http://localhost:8000/summarize?filename=test.docx"
+    );
+
+    const data = (await res.json()) as { summary: string };
+
+    console.log(data);
+
+    setChats([...chats, { content: data.summary, recieved: true }]);
+    setThinking(false);
+    setCurrentChat("");
   };
 
   return (

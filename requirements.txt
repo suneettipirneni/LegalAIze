@@ -6,3 +6,4 @@ tiktoken
 unstructured
 python-dotenv
 flask
+flask-cors
