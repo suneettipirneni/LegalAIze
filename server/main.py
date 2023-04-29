@@ -2,7 +2,7 @@ from flask import Flask, request, abort, Response
 from flask_cors import CORS, cross_origin
 import os
 
-from ml import summarize_document, load_document
+from ml import summarize_document, answer_question
 
 app = Flask(__name__)
 CORS(app)
@@ -37,9 +37,7 @@ def summarize():
   
   filename = request.args['filename']
 
-  document = load_document(file_name=filename)
-
-  result = summarize_document(document.page_content)
+  result = summarize_document(filename)
 
   print(result)
 
@@ -69,3 +67,6 @@ def file_upload():
     file.save(f"./server/docs/{file.filename}")
 
     return file.filename, 200
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')

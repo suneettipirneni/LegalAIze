@@ -1,3 +1,4 @@
+langchain
 langchain[llms]
 redis
 boto3
@@ -7,3 +8,5 @@ unstructured
 python-dotenv
 flask
 flask-cors
+python-dotenv
+openai
