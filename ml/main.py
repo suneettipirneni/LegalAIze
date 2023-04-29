@@ -39,7 +39,7 @@ qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 def get_doc_and_summary(file_name: str):
     if redis_client.exists(file_name):
         data = redis_client.hgetall(file_name)
-        data = {k.decode(): v.decode('utf-8', 'ignore') for k, v in data.items()}
+        data = {k.decode('utf-8', 'ignore'): v.decode('utf-8', 'ignore') for k, v in data.items()}
         return data
     
     file_path = os.path.join(os.getcwd(), 'server','docs', file_name).replace('\\', '/')
@@ -67,7 +67,8 @@ def load_document(file_name: str):
 def summarize_document(file_name: str):
     if redis_client.exists(file_name):
         data = redis_client.hgetall(file_name)
-        return data['summary'].decode('utf-8', 'ignore')
+        data = {k.decode('utf-8', 'ignore'): v.decode('utf-8', 'ignore') for k, v in data.items()}
+        return data['summary']
     data = get_doc_and_summary(file_name)
     return data['summary']
 
