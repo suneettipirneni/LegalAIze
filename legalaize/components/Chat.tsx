@@ -12,6 +12,8 @@ interface Message {
   recieved: boolean;
 }
 
+const cachedChats = new Map<string, Message[]>();
+
 export function ChatBubble({
   text,
   recieved = false,
@@ -45,17 +47,30 @@ export function ChatBubble({
   );
 }
 
-export function ChatUI() {
+export function ChatUI({ summary }: { summary: string }) {
   const [chats, setChats] = useState<Message[]>([]);
   const [currentChat, setCurrentChat] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isGeneral, setIsGeneral] = useState<boolean>(false);
 
   const filename = useContext(FilenameContext);
 
   useEffect(() => {
-    scrollRef.current!.scrollTop = scrollRef.current!.scrollHeight;
-  }, [chats]);
+    if (filename && cachedChats.has(filename)) {
+      setChats(cachedChats.get(filename)!);
+    } else {
+      setChats([]);
+    }
+  }, [filename]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+
+    cachedChats.set(filename!, chats);
+  }, [chats, filename]);
 
   const submitChat = async () => {
     setThinking(true);
@@ -65,7 +80,11 @@ export function ChatUI() {
     console.log(chats);
     const res = await fetch(
       "http://localhost:8000/ask?" +
-        new URLSearchParams({ prompt: currentChat, filename: filename! })
+        new URLSearchParams({
+          prompt: currentChat,
+          filename: filename!,
+          general: `${isGeneral}`,
+        })
     );
 
     const data = (await res.json()) as { content: string };
@@ -79,7 +98,7 @@ export function ChatUI() {
   if (!filename) {
     return (
       <div
-        className={`flex grow flex-col justify-between items-center h-screen max-w-[1200px]`}
+        className={`flex grow flex-col justify-center items-center h-full max-w-[1200px] text-black`}
       >
         No file selected
       </div>
@@ -90,7 +109,22 @@ export function ChatUI() {
     <div
       className={`flex grow flex-col justify-between h-screen max-w-[1200px]`}
     >
+      <div className="flex flex-col space-y-4 p-2 text-black w-full items-center justify-between font-bold border-b border-slate-200">
+        <div className="flex flex-row justify-between w-full items-center">
+          <span>{filename}</span>
+          <button
+            className={`rounded-lg border border-black px-3 py-2 ${
+              isGeneral ? "bg-black text-white" : ""
+            }`}
+            onClick={() => setIsGeneral((prev) => !prev)}
+          >
+            General Mode
+          </button>
+        </div>
+        <span className="font-normal text-slate-500">{summary}</span>
+      </div>
       <div className="grow"></div>
+
       <div
         ref={scrollRef}
         className="flex flex-col overflow-y-auto overflow-x-clip space-y-2 self-end pb-2 px-2 w-full"

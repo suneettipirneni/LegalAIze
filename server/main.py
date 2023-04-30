@@ -60,10 +60,13 @@ def summarize():
 
 @app.route("/fileupload", methods=["POST"])
 def file_upload():
+    print(request.files)
     if 'document' not in request.files:
         return {
             "errorMsg": "Expected a file with key 'document' to be uploaded."
         }, 500
+    
+
     
     file = request.files['document']
 
