@@ -6,9 +6,14 @@ from langchain.document_loaders import TextLoader
 import os
 from tqdm import tqdm
 
-
-os.environ['OPENAI_API_KEY'] = "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"
-
+# check windows or not
+if os.name == 'nt':
+    from dotenv import load
+    load()
+    pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
 
 import os
 from langchain.chains.summarize import load_summarize_chain
