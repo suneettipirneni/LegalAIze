@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { RefObject, useContext, useEffect, useRef, useState } from "react";
 
 import { BsFillCursorFill } from "react-icons/bs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,9 +15,11 @@ interface Message {
 export function ChatBubble({
   text,
   recieved = false,
+  ref,
 }: {
   text: string;
   recieved?: boolean;
+  ref?: RefObject<HTMLDivElement> | null;
 }) {
   const alignClass = recieved ? "self-start" : "self-end";
   const bgClass = recieved
@@ -25,6 +27,7 @@ export function ChatBubble({
     : "bg-blue-500 shadow-sm text-white rounded-t-xl rounded-l-xl";
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, x: 100, scale: 0.1, rotate: 5 }}
       animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
       transition={{
@@ -46,10 +49,13 @@ export function ChatUI() {
   const [chats, setChats] = useState<Message[]>([]);
   const [currentChat, setCurrentChat] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const filename = useContext(FilenameContext);
 
-  useEffect(() => {}, [chats]);
+  useEffect(() => {
+    scrollRef.current!.scrollTop = scrollRef.current!.scrollHeight;
+  }, [chats]);
 
   const submitChat = async () => {
     setThinking(true);
@@ -85,7 +91,10 @@ export function ChatUI() {
       className={`flex grow flex-col justify-between h-screen max-w-[1200px]`}
     >
       <div className="grow"></div>
-      <div className="flex flex-col overflow-y-auto overflow-x-clip space-y-2 self-end pb-2 px-2 w-full">
+      <div
+        ref={scrollRef}
+        className="flex flex-col overflow-y-auto overflow-x-clip space-y-2 self-end pb-2 px-2 w-full"
+      >
         {chats.map((chat, idx) => (
           <ChatBubble key={idx} text={chat.content} recieved={chat.recieved} />
         ))}
