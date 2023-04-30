@@ -11,7 +11,7 @@ export interface SidebarProps {
 
 export function Sidebar({ onSelect }: SidebarProps) {
   const { isLoading, error, data } = useQuery<SidebarItem[]>("docs", () =>
-    fetch("http://127.0.0.1:8000/documents").then((res) => res.json())
+    fetch("http://localhost:8000/documents").then((res) => res.json())
   );
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { RefObject, useContext, useEffect, useRef, useState } from "react";
 
 import { BsFillCursorFill } from "react-icons/bs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,16 +15,19 @@ interface Message {
 export function ChatBubble({
   text,
   recieved = false,
+  ref,
 }: {
   text: string;
   recieved?: boolean;
+  ref?: RefObject<HTMLDivElement> | null;
 }) {
   const alignClass = recieved ? "self-start" : "self-end";
   const bgClass = recieved
-    ? "bg-slate-100 text-black"
-    : "bg-blue-500 shadow-sm text-white";
+    ? "bg-slate-100 text-black rounded-t-xl rounded-r-xl"
+    : "bg-blue-500 shadow-sm text-white rounded-t-xl rounded-l-xl";
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, x: 100, scale: 0.1, rotate: 5 }}
       animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
       transition={{
@@ -35,7 +38,7 @@ export function ChatBubble({
         stiffness: 70,
         restDelta: 0.5,
       }}
-      className={`py-2 px-3 ${bgClass} rounded-xl min-w-[40px] text-lg text-left max-w-[60%] ${alignClass}`}
+      className={`py-2 px-3 ${bgClass} min-w-[40px] text-lg text-left max-w-[60%] ${alignClass}`}
     >
       {text}
     </motion.div>
@@ -46,13 +49,17 @@ export function ChatUI() {
   const [chats, setChats] = useState<Message[]>([]);
   const [currentChat, setCurrentChat] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const filename = useContext(FilenameContext);
 
-  useEffect(() => {}, [chats]);
+  useEffect(() => {
+    scrollRef.current!.scrollTop = scrollRef.current!.scrollHeight;
+  }, [chats]);
 
   const submitChat = async () => {
     setThinking(true);
+    setCurrentChat("");
     const cachedChats = [...chats, { content: currentChat, recieved: false }];
     setChats(() => cachedChats);
     console.log(chats);
@@ -67,7 +74,6 @@ export function ChatUI() {
 
     setChats([...cachedChats, { content: data.content, recieved: true }]);
     setThinking(false);
-    setCurrentChat("");
   };
 
   if (!filename) {
@@ -85,7 +91,10 @@ export function ChatUI() {
       className={`flex grow flex-col justify-between h-screen max-w-[1200px]`}
     >
       <div className="grow"></div>
-      <div className="flex flex-col overflow-y-auto overflow-x-clip space-y-2 self-end pb-2 px-2 w-full">
+      <div
+        ref={scrollRef}
+        className="flex flex-col overflow-y-auto overflow-x-clip space-y-2 self-end pb-2 px-2 w-full"
+      >
         {chats.map((chat, idx) => (
           <ChatBubble key={idx} text={chat.content} recieved={chat.recieved} />
         ))}
