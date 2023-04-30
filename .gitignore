@@ -4,3 +4,4 @@ docs/
 .vscode/
 .env
 server/docs
+file_finder/test_docs
