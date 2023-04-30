@@ -1,0 +1,92 @@
+{
+	"info": {
+		"_postman_id": "32dc31d7-19de-48bc-8809-abd9762c06fe",
+		"name": "Legalaize",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4813956"
+	},
+	"item": [
+		{
+			"name": "http://3.17.37.147:8000/fileupload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "document",
+							"type": "file",
+							"src": "/Users/suneettipirneni/Downloads/test.docx"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.17.37.147:8000/fileupload",
+					"protocol": "http",
+					"host": [
+						"3",
+						"17",
+						"37",
+						"147"
+					],
+					"port": "8000",
+					"path": [
+						"fileupload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Summarize",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.17.37.147:8000/summarize?filename=test.docx",
+					"protocol": "http",
+					"host": [
+						"3",
+						"17",
+						"37",
+						"147"
+					],
+					"port": "8000",
+					"path": [
+						"summarize"
+					],
+					"query": [
+						{
+							"key": "filename",
+							"value": "test.docx"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Documents",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/documents",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"documents"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -11,3 +11,6 @@ flask-cors
 python-dotenv
 openai
 pdfminer
+PyPDF2
+pytesseract
+pdf2image

@@ -9,11 +9,15 @@ from langchain.document_loaders import UnstructuredWordDocumentLoader
 from langchain.chains.question_answering import load_qa_chain
 import os
 import redis
+import PyPDF2
+import pytesseract
+from pdf2image import convert_from_path
 
 # check windows or not
 if os.name == 'nt':
     from dotenv import load
     load()
+    pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
 else:
     from dotenv import load_dotenv
     load_dotenv()
@@ -36,6 +40,26 @@ summarize_document_chain = AnalyzeDocumentChain(combine_docs_chain=summary_chain
 qa_chain = load_qa_chain(llm, chain_type="map_reduce")
 qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
+
+def get_text_from_pdf(file_path: str):
+    text = ""
+    pdf_file = open(file_path, 'rb')
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    pdf_file.close()
+
+    # remove all whitespaces and newlines
+    text = text.replace('\n', ' ').replace('\r', '').replace('  ', ' ')
+
+    if text == "":
+        # extract images from pdf
+        images = convert_from_path(file_path)
+        for image in images:
+            # extract text from image
+            text += pytesseract.image_to_string(image)
+    return text
+
 def get_doc_and_summary(file_name: str):
     if redis_client.exists(file_name):
         data = redis_client.hgetall(file_name)
@@ -43,11 +67,28 @@ def get_doc_and_summary(file_name: str):
         return data
     
     file_path = os.path.join(os.getcwd(), 'server','docs', file_name).replace('\\', '/')
-    doc_loader = UnstructuredWordDocumentLoader(file_path)
-    document = doc_loader.load()
-    summary = summarize_document_chain.run(document[0].page_content)
+
+    if file_name.endswith('.docx') or file_name.endswith('.doc'):
+        doc_loader = UnstructuredWordDocumentLoader(file_path)
+        doc_loader = UnstructuredWordDocumentLoader(file_path)
+        document = doc_loader.load()
+        text = document[0].page_content
+    elif file_name.endswith('.pdf'):
+        text = get_text_from_pdf(file_path)
+    elif file_name.endswith('.txt'):
+        with open(file_path, 'r') as f:
+            text = f.read()
+    elif file_name.endswith('.jpg') or file_name.endswith('.png'):
+        text = pytesseract.image_to_string(file_path)
+    else:
+        raise Exception('File format not supported')
+    
+    # remove whitespaces, new lines and characters that are not supported by OpenAI
+    text = text.replace('\n', ' ').replace('\r', '').replace('  ', ' ').replace('“', '"').replace('”', '"').replace('’', "'").replace('‘', "'").replace('–', '-').replace('—', '-').replace('…', '...').replace('•', '*').replace('·', '*').replace('´', "'").replace('`', "'").replace('“', '"').replace('”', '"').replace('’', "'").replace('‘', "'").replace('–', '-').replace('—', '-').replace('…', '...').replace('•', '*').replace('·', '*').replace('´', "'").replace('`', "'").replace('“', '"').replace('”', '"').replace('’', "'").replace('‘', "'").replace('–', '-').replace('—', '-').replace('…', '...').replace('•', '*').replace('·', '*').replace('´', "'").replace('`', "'").replace('“', '"').replace('”', '"').replace('’', "'").replace('‘', "'").replace('–', '-').replace('—', '-').replace('…', '...').replace('•', '*').replace('·', '*').replace('´', "'").replace('`', "'").replace('“', '"').replace('”', '"').replace('’', "'").replace('‘', "'").replace('–', '-').replace('—', '-').replace('…', '...').replace('•', '*').replace('·', '*').replace('´', "'").replace('`', "'")
+
+    summary = summarize_document_chain.run(text)
     data = {
-        'document': document[0].page_content,
+        'document': text,
         'summary': summary
     }
     redis_client.hmset(file_name, data)
