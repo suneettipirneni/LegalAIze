@@ -14,3 +14,4 @@ pdfminer
 PyPDF2
 pytesseract
 pdf2image
+spacy

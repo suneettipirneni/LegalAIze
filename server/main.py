@@ -22,8 +22,13 @@ def ask():
         return {
             "errorMsg": "Expected a 'query' query parameter, but it was not found"
         }, 500
+    
+    if "general" not in request.args:
+        general = False
+    else:
+        general = request.args['general'] == "true"
 
-    result = answer_question(request.args['prompt'], request.args['filename']) 
+    result = answer_question(request.args['prompt'], request.args['filename'], general=general) 
     
     return {
         "content": result,

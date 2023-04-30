@@ -3,15 +3,15 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.callbacks.base import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.llms import OpenAI
-from langchain.chains import AnalyzeDocumentChain
-from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import AnalyzeDocumentChain, LLMRequestsChain, LLMChain
 from langchain.document_loaders import UnstructuredWordDocumentLoader
-from langchain.chains.question_answering import load_qa_chain
 import os
 import redis
 import PyPDF2
 import pytesseract
 from pdf2image import convert_from_path
+from langchain.prompts import PromptTemplate
+import spacy
 
 # check windows or not
 if os.name == 'nt':
@@ -22,25 +22,51 @@ else:
     from dotenv import load_dotenv
     load_dotenv()
 
-use_default_model = True
-model_name = 'text-curie-001'
+
+template_google = """Extract the answer to the question '{query}' using the document text and the google search results
+like a lawyer would and answer like a laywer would.
+Use the format
+Extracted:<answer or "cannot say from the given information">
+document text: {doc_data},
+google search results: {requests_result},
+Extracted:"""
+
+template = """You are a lawyer and your answers should be professional and accurate.
+You are given a document and a question. You should answer the question using the document.
+Make sure to provide any important context in your answer and give the reasoning and justification for your answer.
+The question is: '{query}' and 
+the document is: '{doc_data}'
+Answer:"""
+
+PROMPT_GOOGLE = PromptTemplate(
+    input_variables=["query", "doc_data","requests_result"],
+    template=template_google,
+)
+
+PROMPT = PromptTemplate(
+    template=template, input_variables=["doc_data", "query"]
+)
+
+use_default_model = False
+model_name = 'gpt-3.5-turbo'
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
 # connect to redis
 redis_url = os.getenv('REDIS_URL')
 redis_client = redis.Redis.from_url(redis_url)
+# Load the English language model
+nlp = spacy.load('en_core_web_sm')
 
 if use_default_model:
-    llm = OpenAI(callback_manager=callback_manager)
+    llm = OpenAI(callback_manager=callback_manager, temperature=0.3)
 else:
-    llm = OpenAI(callback_manager=callback_manager, model_name='text-curie-001')
+    llm = OpenAI(callback_manager=callback_manager, model_name=model_name, temperature=0.3)
 
 summary_chain = load_summarize_chain(llm, chain_type="map_reduce")
 summarize_document_chain = AnalyzeDocumentChain(combine_docs_chain=summary_chain)
-qa_chain = load_qa_chain(llm, chain_type="map_reduce")
-qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
 
-
+google_chain = LLMRequestsChain(llm_chain = LLMChain(llm=llm, prompt=PROMPT_GOOGLE))
+normal_chain = LLMChain(llm=llm, prompt=PROMPT)
 def get_text_from_pdf(file_path: str):
     text = ""
     pdf_file = open(file_path, 'rb')
@@ -113,6 +139,25 @@ def summarize_document(file_name: str):
     data = get_doc_and_summary(file_name)
     return data['summary']
 
-def answer_question(question: str, file_name: str):
+def answer_question(question: str, file_name: str, general: bool = False):
     doc = get_doc_and_summary(file_name)
-    return qa_document_chain.run(question = question, input_document = doc['document'])
+    if general:
+        sentence = question
+
+        # Parse the sentence
+        parsed = nlp(sentence)
+
+        # Extract keywords
+        keywords = [token.text for token in parsed if not token.is_stop and token.pos_ in ['NOUN', 'PROPN']]
+        inputs = {
+            "query": question,
+            "doc_data": doc['document'],
+            "url": "https://www.google.com/search?q=" + '+'.join(keywords)
+        }
+        return google_chain.run(inputs)
+    
+    input = {
+        "query": question,
+        "doc_data": doc['document']
+    }
+    return normal_chain.run(input)
