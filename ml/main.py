@@ -47,7 +47,7 @@ PROMPT = PromptTemplate(
     template=template, input_variables=["doc_data", "query"]
 )
 
-use_default_model = False
+use_default_model = True
 model_name = 'gpt-3.5-turbo'
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
