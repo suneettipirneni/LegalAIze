@@ -32,7 +32,6 @@ export function Sidebar({ onSelect }: SidebarProps) {
             onClick={() => onSelect(item)}
           >
             <span className="font-lg font-bold">{item.name}</span>
-            <span>{`${filename === item.name}`}</span>
             <span className="grow font-mono text-sm text-ellipsis break-words line-clamp-4 max-w-full">
               {item.summary}
             </span>
