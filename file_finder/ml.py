@@ -83,7 +83,7 @@ text_splitter = CharacterTextSplitter(
 
 embeddings = OpenAIEmbeddings()
 
-def generate_index(folder_path, messages_label):
+def generate_index(folder_path):
     dbs = []
     total_files = len(os.listdir(folder_path))
     count = 0
@@ -96,7 +96,6 @@ def generate_index(folder_path, messages_label):
         chunks = text_splitter.create_documents([text], metadatas=[{'file': file_path}])
         db = FAISS.from_documents(chunks, embeddings)
         dbs.append(db)
-        messages_label['text'] = f'Generating index: {count}/{total_files}'
 
     # merge all dbs
     merged_db = dbs[0]
@@ -108,6 +107,6 @@ def generate_index(folder_path, messages_label):
 
 def query_index(query, db_path):
     db = FAISS.load_local(db_path, embeddings)
-    docs_and_scores = db.similarity_search_with_score(query)
+    docs_and_scores = db.similarity_search_with_score(query, k=10)
     file_names = [doc[0].metadata['file'] for doc in docs_and_scores]
     return file_names

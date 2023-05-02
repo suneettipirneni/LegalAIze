@@ -5,7 +5,7 @@ from ml import generate_index, query_index
 
 # Create a new tkinter window
 window = tk.Tk()
-index = None
+window.title('LegalAIze Semantic Doc Finder')
 
 # Create a label to display instructions to the user
 label = tk.Label(text="Please select a folder or enter a folder path:")
@@ -23,7 +23,8 @@ def select_folder():
 button = tk.Button(text="Select Folder", command=select_folder)
 button.pack()
 
-
+label = tk.Label(text="", pady=5)
+label.pack()
 
 # Create a function to retrieve the selected folder path and search text
 def get_folder_and_search_text():
@@ -46,8 +47,11 @@ def update_listbox():
 def generate_index_func():
     # get folder path
     folder_path = path_entry.get()
-    generate_index(folder_path, messages_label)
-    print('Index generated successfully.')
+    generate_index(folder_path)
+    messages_label['text'] = 'Index generated successfully.'
+
+def update_message():
+    messages_label['text'] = 'Generating index...'
 
 # Create a function to load an index of files in the selected folder
 def load_index():
@@ -57,12 +61,8 @@ def load_index():
     messages_label['text'] = 'Index loaded successfully.'
 
 # Create a button to retrieve the folder path and search text, generate an index, update the listbox, and close the window
-generate_button = tk.Button(text="Generate Index", command=lambda: generate_index_func(), pady=5)
+generate_button = tk.Button(text="Generate Index", command=lambda: [update_message(), generate_index_func()], pady=5)
 generate_button.pack()
-
-# Create a status bar to display the status of index generation
-status_label = tk.Label(text='')
-status_label.pack()
 
 # Create a button to retrieve the folder path and search text, load an index, update the listbox, and close the window
 load_button = tk.Button(text="Load Index", command=lambda: [load_index()], pady=5)
@@ -86,18 +86,25 @@ def search():
     for filename in results:
         listbox.insert(tk.END, filename)
 
+label = tk.Label(text="", pady=10)
+label.pack()
+
 # Create a label and a text entry box for the user to enter search text
-search_label = tk.Label(text="Enter search text:")
+search_label = tk.Label(text="Enter search keywords", pady=10)
 search_label.pack()
 search_entry = tk.Entry(width=100)
 search_entry.pack()
 
+
 search_button = tk.Button(text="Search files", command=lambda: [search()])
 search_button.pack()
 
+label = tk.Label(text="", pady=10)
+label.pack()
+
 
 # Create a label to display the list of files
-file_list_label = tk.Label(text="List of Files:")
+file_list_label = tk.Label(text="List of Files", pady=5)
 file_list_label.pack()
 
 # Create a listbox widget to display the list of files
